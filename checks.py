@@ -1,17 +1,7 @@
-import numpy as np
-
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
 import torch.utils.data
-from torch.utils.data import Dataset
-
-import torchvision
-from torchvision import datasets, transforms
 
 import matplotlib.pyplot as plt
-
-from tqdm import tqdm
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
