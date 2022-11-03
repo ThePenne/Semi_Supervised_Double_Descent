@@ -36,6 +36,7 @@ def create_parser():
     parser.add_argument('--aug-num', default=1, type=int , help="number of augs")
     parser.add_argument('--knn', default=50, type=float,
                         metavar='Neighest Neighbourhours', help='graph k-nn')
+    parser.add_argument('--noise-ratio', default=0.2, type=float, help='generate label noise with ratio (default: 0.2)')
     parser.add_argument('--progress', default=False, type=bool, help='progress bar on or off')
     return parser
 
