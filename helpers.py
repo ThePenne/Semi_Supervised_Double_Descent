@@ -54,10 +54,19 @@ def create_data_loaders_simple(weak_transformation,strong_transformation,
     evaldir = os.path.join(datadir, args.eval_subdir)
 
     with open(args.labels) as f:
-        labels = dict(line.split(' ') for line in f.read().splitlines()) 
+        labels = dict(line.split(' ') for line in f.read().splitlines())
 
     dataset =  db_semisuper.DBSS(traindir, labels , False , args.aug_num , eval_transformation,weak_transformation,strong_transformation)
     
+    # Generate Noise:
+    noised_dataset_targets = dataset.targets
+    dataset_classes = np.unique(noised_dataset_targets)
+
+    for i in range(len(dataset)):
+        if np.random.rand() < args.noise_ratio:
+            noised_dataset_targets[i] = np.random.choice(np.delete(dataset_classes, noised_dataset_targets[i]))
+
+    dataset.targets = noised_dataset_targets
     
     sampler = SubsetRandomSampler(dataset.labeled_idx)
     batch_sampler = BatchSampler(sampler, args.batch_size, drop_last=True)
@@ -94,8 +103,6 @@ def create_data_loaders_simple(weak_transformation,strong_transformation,
 
   
     return train_loader, eval_loader, train_loader_noshuff , train_loader_l , train_loader_u , dataset
-
-
 
 #### Create Model
 def create_model(num_classes,args):
@@ -228,19 +235,12 @@ def validate_on_eval(eval_loader, model, args, global_step, epoch, num_classes=1
     total = 0
     
     with torch.no_grad():
-        for batch_idx, (inputs, targets) in enumerate(eval_loader):
-            batch_size = targets.size(0)
+        for inputs, targets in eval_loader:
             model.eval()
+            
             inputs = inputs.to(args.device)
             targets = targets.to(args.device)
             outputs , _ = model(inputs)
-            
-            # measure accuracy and record loss
-            prec1, prec5 = accuracy(outputs, targets, topk=(1, 5))
-            meters.update('top1', prec1.item(), batch_size)
-            meters.update('error1', 100.0 - prec1.item(), batch_size)
-            meters.update('top5', prec5.item(), batch_size)
-            meters.update('error5', 100.0 - prec5.item(), batch_size)
             
             predicted = torch.max(outputs, 1)[1]
             
@@ -248,18 +248,15 @@ def validate_on_eval(eval_loader, model, args, global_step, epoch, num_classes=1
             correct += (predicted == targets).sum().item()
 
         error = 1.0 - (float(correct) / float(total))
-        
-        print(' * Prec@1 {top1.avg:.3f}\tPrec@5 {top5.avg:.3f}'
-              .format(top1=meters['top1'], top5=meters['top5']))
 
-    return meters['top1'].avg, meters['top5'].avg, error
+    return error
 
 def validate_on_train(train_loader, model, args, num_classes=10):
     model.eval()
     correct = 0
     total = 0
     
-    for i, (aug_images , targets) in enumerate(train_loader):      
+    for aug_images , targets in train_loader:      
         targets = targets.to(args.device)
         
         for batch in aug_images:

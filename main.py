@@ -54,7 +54,6 @@ def laplacenet():
                 dataset.one_iter_true(feats,k = args.knn, max_iter = 30, l2 = True , index="ip") 
 		
 	    #### Supervised Initilisation vs Semi-supervised main loop
-            start_train_time = time.time()  
             if epoch < 10:
                 print("Supervised Initilisation:", (epoch+1), "/" , 10 )
                 for i in range(10):
@@ -62,22 +61,13 @@ def laplacenet():
             if epoch >= 10:
                 global_step = helpers.train_semi(train_loader_l, train_loader_u, model, optimizer, epoch, global_step, args)  
 
-            end_train_time = time.time()
             print("Evaluating the primary model:", end=" ")
             train_error = helpers.validate_on_train(train_loader, model, args, num_classes = args.num_classes)
-            prec1, prec5, test_error = helpers.validate_on_eval(eval_loader, model, args, global_step, epoch + 1, num_classes = args.num_classes)
+            test_error = helpers.validate_on_eval(eval_loader, model, args, global_step, epoch + 1, num_classes = args.num_classes)
             
             train_error_list.append(train_error)
             test_error_list.append(test_error)
-        
-            epoch_results[epoch,0] = epoch
-            epoch_results[epoch,1] = prec1
-            epoch_results[epoch,2] = prec5 
-            epoch_results[epoch,3] = dataset.acc
-            epoch_results[epoch,4] = time.time() - start_epoch_time
-            epoch_results[epoch,5] = end_train_time - start_train_time
-		
-            np.savetxt(args.file,epoch_results)
+            
             # torch.save(model.state_dict(), f'./output/model_state_dict.pt')
             torch.save(train_error_list, f'./output/{args.num_labeled}_train_error_list.pt')
             torch.save(test_error_list, f'./output/{args.num_labeled}_test_error_list.pt')
