@@ -3,4 +3,9 @@ __pycache__
 .ipynb_checkpoints/*
 .vscode/*
 config/__pycache__/*
-data-local
+data-local/images/*
+data-local/labels/cifar10/*
+data-local/labels/cifar100/*
+data-local/labels/miniimagenet/*
+data-local/workdir/*
+data-local/cifar100_meta.meta
