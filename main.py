@@ -62,7 +62,7 @@ def laplacenet():
                 global_step = helpers.train_semi(train_loader_l, train_loader_u, model, optimizer, epoch, global_step, args)  
 
             print("Evaluating the primary model:", end=" ")
-            train_error = helpers.validate_on_train(train_loader, model, args, num_classes = args.num_classes)
+            train_error = helpers.validate_on_train(train_loader_l, model, args, num_classes = args.num_classes)
             test_error = helpers.validate_on_eval(eval_loader, model, args, global_step, epoch + 1, num_classes = args.num_classes)
             
             train_error_list.append(train_error)
