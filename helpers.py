@@ -59,14 +59,17 @@ def create_data_loaders_simple(weak_transformation,strong_transformation,
     dataset =  db_semisuper.DBSS(traindir, labels , False , args.aug_num , eval_transformation,weak_transformation,strong_transformation)
     
     # Generate Noise:
-    noised_dataset_targets = dataset.targets
-    dataset_classes = np.unique(noised_dataset_targets)
+    if args.noise_ratio != 0:
+        print("Generating noise...")
+        noised_dataset_targets = dataset.targets
+        dataset_classes = np.unique(noised_dataset_targets)
 
-    for i in range(len(dataset)):
-        if np.random.rand() < args.noise_ratio:
-            noised_dataset_targets[i] = np.random.choice(np.delete(dataset_classes, noised_dataset_targets[i]))
+        for i in range(len(dataset)):
+            if np.random.rand() < args.noise_ratio:
+                noised_dataset_targets[i] = np.random.choice(np.delete(dataset_classes, noised_dataset_targets[i]))
 
-    dataset.targets = noised_dataset_targets
+        dataset.targets = noised_dataset_targets
+        print("Done.")
     
     sampler = SubsetRandomSampler(dataset.labeled_idx)
     batch_sampler = BatchSampler(sampler, args.batch_size, drop_last=True)
@@ -209,8 +212,8 @@ def train_semi(train_loader_l, train_loader_u , model, optimizer, epoch, global_
         for batch_l , batch_u in zip(aug_images_l ,aug_images_u):
             batch_l = batch_l.to(args.device)
             batch_u = batch_u.to(args.device)
-            batch = torch.cat((batch_l,batch_u),0) 
-            m_batch = mixup_data(batch,index,lam)            
+            batch = torch.cat((batch_l,batch_u),0)
+            m_batch = mixup_data(batch,index,lam)
             class_logit , _  = model(m_batch)
 
             if count == 0:
@@ -229,11 +232,11 @@ def train_semi(train_loader_l, train_loader_u , model, optimizer, epoch, global_
         global_step += 1
     return global_step
 
-def validate_on_eval(eval_loader, model, args, global_step, epoch, num_classes=10):
-    meters = AverageMeterSet()    
+def validate_on_eval(eval_loader, model, args):   
     correct = 0
     total = 0
-    
+    print("eval_loader_length:")
+    print(len(eval_loader))
     with torch.no_grad():
         for inputs, targets in eval_loader:
             model.eval()
@@ -251,15 +254,19 @@ def validate_on_eval(eval_loader, model, args, global_step, epoch, num_classes=1
 
     return error
 
-def validate_on_train(train_loader, model, args, num_classes=10):
+def validate_on_train(train_loader, model, args):
     model.eval()
     correct = 0
     total = 0
-    
-    for aug_images , targets in train_loader:      
+    print("train_loader_length:")
+    print(len(train_loader))
+    for aug_images , targets in train_loader:  
+        #print("a:")
+        #print(len(aug_images)) #~800
+        #print(len(targets)) #48
         targets = targets.to(args.device)
         
-        for batch in aug_images:
+        for batch in aug_images: #48
             batch = batch.to(args.device)
             outputs , _  = model(batch)
             
@@ -320,7 +327,7 @@ def extract_features_simp(train_loader,model,args):
 
 def load_args(args):
     args.workers = 4 * torch.cuda.device_count()
-    label_dir = 'data-local/'
+    label_dir = 'data-local'
     
     if int(args.label_split) < 10:
         args.label_split = args.label_split.zfill(2)

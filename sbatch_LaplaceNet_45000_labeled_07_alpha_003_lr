@@ -25,4 +25,4 @@ echo -e "SLURM_JOB_NODELIST:\t" $SLURM_JOB_NODELIST "\n\n"
 module load anaconda				### load anaconda module (must be present when working with conda environments)
 module load cuda/11.3
 source activate LaplaceNet				### activate a conda environment
-python main.py --dataset cifar10 --model wrn-28-2 --num-labeled 2000 --alpha 1.0 --lr 0.03 --labeled-batch-size 48 --batch-size 300 --aug-num 3 --label-split 12 --progress False
+python main.py --dataset cifar10 --model wrn-28-2 --num-labeled 45000 --alpha 0.7 --lr 0.03 --labeled-batch-size 50 --batch-size 300 --aug-num 3 --label-split 12 --progress False

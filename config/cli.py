@@ -9,7 +9,7 @@ def create_parser():
                             ' | '.join(datasets.__all__) +
                             ' (default: imagenet)')
     parser.add_argument('--model', type=str, help='the model architecture to use')
-    parser.add_argument('--train-subdir', type=str, default='train+val',
+    parser.add_argument('--train-subdir', type=str, default='train',
                         help='the subdirectory inside the data directory that contains the training data')
     parser.add_argument('--eval-subdir', type=str, default='test',
                         help='the subdirectory inside the data directory that contains the evaluation data')

@@ -22,7 +22,7 @@ create ()
 DATADIR=../../images/cifar/cifar10/by-image
 DATANAME=cifar10
 NUM_CLASSES=10
-LABEL_VARIATIONS=(4000 4500)
+LABEL_VARIATIONS=(4000 4500)N3wP@ss0k
 create
 
 # DATADIR=data/images/ilsvrc2012/
